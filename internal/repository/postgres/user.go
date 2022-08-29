@@ -9,6 +9,11 @@ import (
 type UserRepository struct {
 }
 
+func NewUserRepository() user.Repository {
+
+	return &UserRepository{}
+}
+
 func (u UserRepository) Create(ctx context.Context, m *user.Model) error {
 
 	return nil
@@ -30,11 +35,6 @@ func (u UserRepository) FetchOne(ctx context.Context, f user.Filter) (*user.Mode
 }
 
 func (u UserRepository) Delete(ctx context.Context, id string) error {
-
-	return nil
-}
-
-func NewUserRepository() user.Repository {
 
 	return nil
 }
