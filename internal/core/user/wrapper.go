@@ -1,7 +1,6 @@
 package user
 
 // User for casting model to user
-// Mainly used in the repository layer
 func (m *Model) User() *User {
 	var res User
 

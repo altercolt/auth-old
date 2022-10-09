@@ -8,12 +8,15 @@ type Login struct {
 }
 
 type User struct {
-	ID        string    `json:"id"`
+	ID        int       `json:"id"`
+	Role      string    `json:"role"`
 	Email     string    `json:"email"`
 	Username  string    `json:"username"`
 	Firstname string    `json:"firstname"`
 	Lastname  string    `json:"lastname"`
 	BirthDate time.Time `json:"birthDate"`
+	Salt      string    `json:"-"`
+	PassHash  string    `json:"-"`
 }
 
 type New struct {
@@ -35,11 +38,13 @@ type Update struct {
 }
 
 type Model struct {
-	ID        *string
+	ID        *int
 	Email     *string
+	Role      *string
 	Username  *string
 	Firstname *string
 	Lastname  *string
 	BirthDate *time.Time
-	Password  *string
+	Salt      *string
+	PassHash  *string
 }

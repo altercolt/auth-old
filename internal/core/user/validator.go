@@ -6,7 +6,7 @@ import (
 )
 
 // Validate called in handlers layer
-func (n *New) Validate() (map[string]string, bool) {
+func (n New) Validate() (map[string]string, bool) {
 
 	res := make(map[string]string)
 	var resBool bool
@@ -51,7 +51,7 @@ func (n *New) Validate() (map[string]string, bool) {
 	return res, !resBool
 }
 
-func (u *Update) Validate() (map[string]string, bool) {
+func (u Update) Validate() (map[string]string, bool) {
 	res := make(map[string]string)
 
 	var resBool bool
