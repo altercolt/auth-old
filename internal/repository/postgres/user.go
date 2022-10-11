@@ -67,7 +67,7 @@ func (u userRepository) Update(ctx context.Context, m *user.Model) error {
 
 // Fetch
 // used for getting multiple users from users table
-func (u userRepository) Fetch(ctx context.Context, f user.Filter) ([]*user.User, error) {
+func (u userRepository) Fetch(ctx context.Context, f user.Filter) ([]user.User, error) {
 	query := `SELECT users.id, 
 				roles.name, users.email, 
 				users.username, users.firstname, users.lastname, users.birth_date, 
@@ -88,7 +88,7 @@ func (u userRepository) Fetch(ctx context.Context, f user.Filter) ([]*user.User,
 		return nil, err
 	}
 
-	var res []*user.User
+	var res []user.User
 
 	for rows.Next() {
 		var usr user.User
@@ -96,7 +96,7 @@ func (u userRepository) Fetch(ctx context.Context, f user.Filter) ([]*user.User,
 			return nil, err
 		}
 
-		res = append(res, &usr)
+		res = append(res, usr)
 	}
 
 	return res, nil
@@ -104,7 +104,7 @@ func (u userRepository) Fetch(ctx context.Context, f user.Filter) ([]*user.User,
 
 // FetchOne
 // used for getting a single user from users table
-func (u userRepository) FetchOne(ctx context.Context, f user.Filter) (*user.User, error) {
+func (u userRepository) FetchOne(ctx context.Context, f user.Filter) (user.User, error) {
 	query := `SELECT users.id, 
 				roles.name, users.email, 
 				users.username, users.firstname, users.lastname, users.birth_date, 
@@ -119,19 +119,19 @@ func (u userRepository) FetchOne(ctx context.Context, f user.Filter) (*user.User
          		AND ($5::varchar[] IS NULL OR users.lastname = ANY($5))
          		AND ($6::date[] IS NULL OR users.birth_date = ANY($6));`
 
-	if err := validateFilter(f); err != nil {
-		return nil, err
-	}
-
 	var usr user.User
+
+	if err := validateFilter(f); err != nil {
+		return usr, err
+	}
 
 	row := u.db.QueryRow(ctx, query, f.ID, f.Email, f.Username, f.Firstname, f.Lastname, f.BirthDate)
 
 	if err := row.Scan(&usr.ID, &usr.Role, &usr.Email, &usr.Username, &usr.Firstname, &usr.Lastname, &usr.BirthDate, &usr.Salt, &usr.PassHash); err != nil {
-		return nil, err
+		return usr, err
 	}
 
-	return &usr, nil
+	return usr, nil
 }
 
 // Delete

@@ -29,6 +29,7 @@ func (h Handler) Create(ctx context.Context, w http.ResponseWriter, r *http.Requ
 }
 
 func (h Handler) GetOne(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+
 	return nil
 }
 

@@ -9,6 +9,5 @@ func wrapMiddleware(m []Middleware, handler Handler) Handler {
 			handler = h(handler)
 		}
 	}
-
 	return handler
 }
