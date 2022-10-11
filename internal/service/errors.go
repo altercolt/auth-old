@@ -19,3 +19,17 @@ func (v ValidationError) Error() string {
 func (v ValidationError) ErrorsMap() map[string]string {
 	return v.errorsMap
 }
+
+type AuthorizationError struct {
+	message string
+}
+
+func NewAuthorizationError(message string) error {
+	return AuthorizationError{
+		message: message,
+	}
+}
+
+func (e AuthorizationError) Error() string {
+	return e.message
+}
