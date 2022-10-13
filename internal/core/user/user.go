@@ -10,7 +10,6 @@ type User struct {
 	Firstname string    `json:"firstname"`
 	Lastname  string    `json:"lastname"`
 	BirthDate time.Time `json:"birthDate"`
-	Salt      string    `json:"-"`
 	PassHash  string    `json:"-"`
 }
 
@@ -40,6 +39,5 @@ type Model struct {
 	Firstname *string
 	Lastname  *string
 	BirthDate *time.Time
-	Salt      *string
 	PassHash  *string
 }

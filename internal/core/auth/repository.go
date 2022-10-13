@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"github.com/google/uuid"
+	"time"
 )
 
 // TokenRepository
@@ -19,4 +20,11 @@ type Filter struct {
 	Users         []int
 	AccessTokens  []string
 	RefreshTokens []string
+}
+
+// TokenStore
+// Uses Key-Value database for storing tokens xD
+type TokenStore interface {
+	Set(ctx context.Context, exp time.Duration, key string, value ...string) error
+	Get(ctx context.Context, key string) ([]string, error)
 }

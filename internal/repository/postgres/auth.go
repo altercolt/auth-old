@@ -54,7 +54,7 @@ func (r TokenRepository) Fetch(ctx context.Context, filter auth.Filter) ([]auth.
 	return tokens, nil
 }
 
-func (r *TokenRepository) Delete(ctx context.Context, id uuid.UUID, userID int) error {
+func (r TokenRepository) Delete(ctx context.Context, id uuid.UUID, userID int) error {
 	query := `DELETE FROM tokens where id = $1 AND user_id = $2`
 
 	trx, err := r.db.Begin(ctx)
@@ -77,7 +77,7 @@ func (r *TokenRepository) Delete(ctx context.Context, id uuid.UUID, userID int) 
 	return nil
 }
 
-func (r *TokenRepository) DeleteAll(ctx context.Context, userID int) error {
+func (r TokenRepository) DeleteAll(ctx context.Context, userID int) error {
 	query := `DELETE FROM tokens WHERE user_id = $1`
 
 	_, err := r.db.Exec(ctx, query, userID)

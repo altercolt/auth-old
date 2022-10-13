@@ -22,13 +22,13 @@ func NewUserRepository(conn *pgxpool.Pool) user.Repository {
 // Create
 // used for creating new user record in users table
 func (u userRepository) Create(ctx context.Context, m *user.Model) error {
-	query := `INSERT INTO users (email, username, firstname, lastname, birth_date, salt, passhash, role_id) 
+	query := `INSERT INTO users (email, username, firstname, lastname, birth_date, passhash, role_id) 
 			VALUES($1, $2, $3, $4, $5, $6, $7, $8);
 `
 	//TODO: CHANGE ROLE_USER to role.User
 	_, err := u.db.Exec(ctx, query,
 		m.Email, m.Username, m.Firstname, m.Lastname, m.BirthDate,
-		m.Salt, m.PassHash, 2)
+		m.PassHash, 2)
 
 	if err != nil {
 		return err
@@ -47,15 +47,13 @@ func (u userRepository) Update(ctx context.Context, m *user.Model) error {
 			      firstname = COALESCE($4, firstname),
 			      lastname = COALESCE($5, lastname),
 			      birth_date = COALESCE($6, birth_date),
-			      salt = COALESCE($7, salt),
 			      passhash = COALESCE($8, passhash)
 			WHERE id = $1;
 			      `
 	tx, err := u.db.Begin(ctx)
 	res, err := u.db.Exec(ctx, query,
 		m.ID,
-		m.Email, m.Username, m.Firstname, m.Lastname, m.BirthDate,
-		m.Salt, m.PassHash)
+		m.Email, m.Username, m.Firstname, m.Lastname, m.BirthDate, m.PassHash)
 
 	if res.RowsAffected() > 1 {
 		err = tx.Rollback(ctx)
@@ -70,8 +68,7 @@ func (u userRepository) Update(ctx context.Context, m *user.Model) error {
 func (u userRepository) Fetch(ctx context.Context, f user.Filter) ([]user.User, error) {
 	query := `SELECT users.id, 
 				roles.name, users.email, 
-				users.username, users.firstname, users.lastname, users.birth_date, 
-				users.salt, users.passhash
+				users.username, users.firstname, users.lastname, users.birth_date, users.passhash
 				FROM users 
 				INNER JOIN roles 
 				    ON users.role_id = roles.id
@@ -92,7 +89,7 @@ func (u userRepository) Fetch(ctx context.Context, f user.Filter) ([]user.User, 
 
 	for rows.Next() {
 		var usr user.User
-		if err = rows.Scan(&usr.ID, &usr.Role, &usr.Email, &usr.Username, &usr.Firstname, &usr.Lastname, &usr.BirthDate, &usr.Salt, &usr.PassHash); err != nil {
+		if err = rows.Scan(&usr.ID, &usr.Role, &usr.Email, &usr.Username, &usr.Firstname, &usr.Lastname, &usr.BirthDate, &usr.PassHash); err != nil {
 			return nil, err
 		}
 
@@ -107,8 +104,7 @@ func (u userRepository) Fetch(ctx context.Context, f user.Filter) ([]user.User, 
 func (u userRepository) FetchOne(ctx context.Context, f user.Filter) (user.User, error) {
 	query := `SELECT users.id, 
 				roles.name, users.email, 
-				users.username, users.firstname, users.lastname, users.birth_date, 
-				users.salt, users.passhash
+				users.username, users.firstname, users.lastname, users.birth_date, users.passhash
 				FROM users 
 				INNER JOIN roles 
 				    ON users.role_id = roles.id
@@ -127,7 +123,7 @@ func (u userRepository) FetchOne(ctx context.Context, f user.Filter) (user.User,
 
 	row := u.db.QueryRow(ctx, query, f.ID, f.Email, f.Username, f.Firstname, f.Lastname, f.BirthDate)
 
-	if err := row.Scan(&usr.ID, &usr.Role, &usr.Email, &usr.Username, &usr.Firstname, &usr.Lastname, &usr.BirthDate, &usr.Salt, &usr.PassHash); err != nil {
+	if err := row.Scan(&usr.ID, &usr.Role, &usr.Email, &usr.Username, &usr.Firstname, &usr.Lastname, &usr.BirthDate, &usr.PassHash); err != nil {
 		return usr, err
 	}
 

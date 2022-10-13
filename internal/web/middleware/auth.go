@@ -2,37 +2,26 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"github.com/altercolt/auth/internal/core/auth"
+	"github.com/altercolt/auth/internal/service"
 	"github.com/altercolt/auth/pkg/web"
-	"github.com/golang-jwt/jwt/v4"
 	"net/http"
 	"strings"
 )
 
-var (
-	ErrAuthInvalidToken = errors.New("invalid token")
-)
-
-func Auth(a *auth.Service) web.Middleware {
+func Auth(a auth.Service) web.Middleware {
 	m := func(handler web.Handler) web.Handler {
 		h := func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 
 			bearer := r.Header.Get("Authorization")
 			split := strings.Split(bearer, " ")
 			if len(split) != 2 {
-				return ErrAuthInvalidToken
+				return service.NewAuthorizationError("invalid token")
 			}
 
-			var payload auth.Payload
-
-			tkn, err := jwt.ParseWithClaims(split[1], payload, func(token *jwt.Token) (interface{}, error) {
-
-				return nil, nil
-			})
-
+			payload, err := a.Authenticate(ctx, split[1])
 			if err != nil {
-				return err
+				return service.NewAuthorizationError("invalid token: " + err.Error())
 			}
 
 			ctx = context.WithValue(ctx, "payload", payload)

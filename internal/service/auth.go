@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/altercolt/auth/internal/core/auth"
 	"github.com/altercolt/auth/internal/core/user"
+	"github.com/altercolt/auth/pkg/keystore"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -21,16 +22,22 @@ var (
 	refreshTokenDuration = (time.Hour * 24) * 14
 )
 
+// AuthService
+// implements auth.Service
 type AuthService struct {
 	userService user.Service
-	tokenRepo   auth.TokenRepository
+	keyStore    keystore.KeyStore
 }
 
-func NewAuthService(userService user.Service, tokenRepo auth.TokenRepository) auth.Service {
+func NewAuthService(userService user.Service) auth.Service {
 	return AuthService{
 		userService: userService,
-		tokenRepo:   tokenRepo,
 	}
+}
+
+func (a AuthService) Authenticate(ctx context.Context, accessToken string) (auth.Payload, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (a AuthService) Login(ctx context.Context, login auth.Login) error {
@@ -46,10 +53,9 @@ func (a AuthService) Login(ctx context.Context, login auth.Login) error {
 		return nil
 	}
 
-	salt := usr.Salt
 	passHash := usr.PassHash
 
-	err = bcrypt.CompareHashAndPassword([]byte(passHash), []byte(login.Password+salt))
+	err = bcrypt.CompareHashAndPassword([]byte(passHash), []byte(login.Password))
 	if err != nil {
 		return NewAuthorizationError("wrong username/email or password")
 	}
@@ -57,7 +63,19 @@ func (a AuthService) Login(ctx context.Context, login auth.Login) error {
 	return nil
 }
 
-func (a AuthService) GenerateTokens(ctx context.Context, usr user.User) (auth.Token, error) {
+// TokenService
+// implements auth.TokenService
+type TokenService struct {
+	tokenRepo auth.TokenRepository
+}
+
+func NewTokenService(tokenRepo auth.TokenRepository) auth.TokenService {
+	return TokenService{
+		tokenRepo: tokenRepo,
+	}
+}
+
+func (t TokenService) GenerateTokens(ctx context.Context, usr user.User) (auth.Token, error) {
 	var token auth.Token
 	accessTokenPayload := auth.Payload{
 		ID:   usr.ID,
@@ -67,9 +85,10 @@ func (a AuthService) GenerateTokens(ctx context.Context, usr user.User) (auth.To
 	}
 
 	access := jwt.NewWithClaims(jwt.SigningMethodRS256, accessTokenPayload)
+	//TODO
 	accessToken, err := access.SignedString("dsa;lkjfa;lksf;alk")
 	if err != nil {
-		return token, err
+		return auth.Token{}, err
 	}
 
 	exp := time.Now().Add(15 * time.Minute).Unix()
@@ -81,6 +100,7 @@ func (a AuthService) GenerateTokens(ctx context.Context, usr user.User) (auth.To
 	}
 
 	refresh := jwt.NewWithClaims(jwt.SigningMethodRS256, refreshTokenPayload)
+	//TODO
 	refreshToken, err := refresh.SignedString("dsalkfjasdjkfa;")
 	if err != nil {
 		return token, err
@@ -95,50 +115,32 @@ func (a AuthService) GenerateTokens(ctx context.Context, usr user.User) (auth.To
 		RefreshExp:   time.Now().Add(refreshTokenDuration).Unix(),
 	}
 
-	if err = a.tokenRepo.Create(ctx, token); err != nil {
+	if err = t.tokenRepo.Create(ctx, token); err != nil {
 		return auth.Token{}, err
 	}
 
 	return token, nil
 }
 
-// Authenticate
-// Used for validating tokens in middleware.Auth()
-// TODO: Finish Authenticate()
-func (a AuthService) Authenticate(ctx context.Context, token auth.Token) error {
-	access := token.AccessToken
-	refresh := token.RefreshToken
+func (t TokenService) RefreshTokens(ctx context.Context, token auth.Token) (auth.Payload, error) {
 
-	var payload auth.Payload
-	tkn, err := jwt.ParseWithClaims(access, &payload,
-		func(token *jwt.Token) (interface{}, error) {
-
-			return nil, nil
-		})
-	if err != nil {
-		return err
-	}
-
-	payload = tkn.Claims.(auth.Payload)
-
-	return nil
+	return auth.Payload{}, nil
 }
 
-func (a AuthService) GetAll(ctx context.Context, userID int) ([]auth.Token, error) {
-	return a.tokenRepo.Fetch(ctx, auth.Filter{Users: []int{userID}})
+func (t TokenService) GetAll(ctx context.Context, userID int) ([]auth.Token, error) {
+	return t.tokenRepo.Fetch(ctx, auth.Filter{Users: []int{userID}})
 }
 
-func (a AuthService) Revoke(ctx context.Context, userID int, tokenID string) error {
+func (t TokenService) Revoke(ctx context.Context, userID int, tokenID string) error {
 	id, err := uuid.Parse(tokenID)
 	if err != nil {
 		return NewValidationError("authService.Revoke() uuid validation error", map[string]string{
 			"id": "invalid uuid",
 		})
 	}
-
-	return a.tokenRepo.Delete(ctx, id, userID)
+	return t.tokenRepo.Delete(ctx, id, userID)
 }
 
-func (a AuthService) RevokeAll(ctx context.Context, userID int) error {
-	return a.tokenRepo.DeleteAll(ctx, userID)
+func (t TokenService) RevokeAll(ctx context.Context, userID int) error {
+	return t.tokenRepo.DeleteAll(ctx, userID)
 }

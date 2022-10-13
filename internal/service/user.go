@@ -30,10 +30,12 @@ func (u UserService) Create(ctx context.Context, nu user.New) error {
 		return NewValidationError("userService.Create() validation error", errMap)
 	}
 
-	salt, passHash, err := u.generatePassword(ctx, nu.Password)
+	passHashByte, err := bcrypt.GenerateFromPassword([]byte(nu.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
+
+	nu.Password = string(passHashByte)
 
 	model := user.Model{
 		Email:     &nu.Email,
@@ -41,21 +43,10 @@ func (u UserService) Create(ctx context.Context, nu user.New) error {
 		Firstname: &nu.Firstname,
 		Lastname:  &nu.Lastname,
 		BirthDate: &nu.BirthDate,
-		Salt:      &salt,
-		PassHash:  &passHash,
+		PassHash:  &nu.Password,
 	}
 
 	return u.repo.Create(ctx, &model)
-}
-
-func (u UserService) generatePassword(ctx context.Context, password string) (string, string, error) {
-	salt := u.generateSalt(ctx)
-	passHash, err := bcrypt.GenerateFromPassword([]byte(password+salt), bcrypt.DefaultCost)
-	if err != nil {
-		return "", "", err
-	}
-
-	return salt, string(passHash), nil
 }
 
 func (u UserService) FetchOneByUsername(ctx context.Context, username string) (user.User, error) {
@@ -97,12 +88,13 @@ func (u UserService) Update(ctx context.Context, update user.Update, id int) err
 	}
 
 	if update.Password != nil {
-		salt, passHash, err := u.generatePassword(ctx, *update.Password)
+		passHashBytes, err := bcrypt.GenerateFromPassword([]byte(*update.Password), bcrypt.DefaultCost)
 		if err != nil {
 			return err
 		}
 
-		model.Salt = &salt
+		passHash := string(passHashBytes)
+
 		model.PassHash = &passHash
 	}
 
@@ -111,10 +103,4 @@ func (u UserService) Update(ctx context.Context, update user.Update, id int) err
 
 func (u UserService) Delete(ctx context.Context, id int) error {
 	return u.repo.Delete(ctx, id)
-}
-
-// generateSalt
-// TODO: write implementation
-func (u UserService) generateSalt(ctx context.Context) string {
-	return "salt"
 }

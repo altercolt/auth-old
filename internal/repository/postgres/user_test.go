@@ -52,7 +52,7 @@ func TestUserRepository_Fetch(t *testing.T) {
 	}
 
 	for _, v := range users {
-		t.Logf("result : %v", *v)
+		t.Logf("result : %v", v)
 	}
 
 }
@@ -80,7 +80,7 @@ func TestUserRepository_FetchOne(t *testing.T) {
 		t.Fatalf("fetch error : %v", err)
 	}
 
-	t.Logf("result : %v", *usr)
+	t.Logf("result : %v", usr)
 
 }
 
@@ -104,7 +104,6 @@ func TestUserRepository_Create(t *testing.T) {
 		Firstname: toPtr[string]("Hello"),
 		Lastname:  toPtr[string]("World"),
 		BirthDate: toPtr[time.Time](time.Now()),
-		Salt:      toPtr[string]("methsalt"),
 		PassHash:  toPtr[string]("randomhash"),
 	}
 
@@ -153,7 +152,6 @@ func TestUserRepository_Update(t *testing.T) {
 		Firstname: nil,
 		Lastname:  nil,
 		BirthDate: nil,
-		Salt:      nil,
 		PassHash:  nil,
 	}
 

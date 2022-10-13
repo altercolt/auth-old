@@ -6,8 +6,8 @@ import "github.com/google/uuid"
 // Structure that user sees
 // UserID and ID are hidden from user
 type Token struct {
-	ID           uuid.UUID `json:"-"`
-	UserID       int       `json:"-"`
+	ID           uuid.UUID `json:"id"`
+	UserID       int       `json:"user_id"`
 	AccessToken  string    `json:"access-token"`
 	RefreshToken string    `json:"refresh-token"`
 	AccessExp    int64     `json:"refresh-token-exp"`
@@ -36,11 +36,4 @@ type Payload struct {
 	Role string    `json:"role"`
 	Type TokenType `json:"type"`
 	Exp  int64     `json:"exp"`
-}
-
-// Valid
-// implements jwt.Claims Interface
-// TODO: Write implementation
-func (p Payload) Valid() error {
-	return nil
 }
